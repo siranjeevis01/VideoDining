@@ -1,0 +1,20 @@
+{
+  "Version": 1,
+  "Hash": "8C+Dk8WtT+guTMhTKmYJF01a8Kstrl93ih2WwnwVyiw=",
+  "Source": "VideoDiningApp",
+  "BasePath": "_content/VideoDiningApp",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "VideoDiningApp\\wwwroot",
+      "Source": "VideoDiningApp",
+      "ContentRoot": "D:\\Dotnet Project\\VideoDiningApp\\VideoDiningApp\\wwwroot\\",
+      "BasePath": "_content/VideoDiningApp",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [],
+  "Endpoints": []
+}
