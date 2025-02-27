@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VideoDiningApp.Data;
 
@@ -11,9 +12,11 @@ using VideoDiningApp.Data;
 namespace VideoDiningApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250227081600_AddOtp13Table")]
+    partial class AddOtp13Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,42 +24,6 @@ namespace VideoDiningApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("OrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FoodItemId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("GroupOrderId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FoodItemId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderItems");
-                });
 
             modelBuilder.Entity("VideoCallRequest", b =>
                 {
@@ -263,6 +230,38 @@ namespace VideoDiningApp.Migrations
                     b.ToTable("Orders");
                 });
 
+            modelBuilder.Entity("VideoDiningApp.Models.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FoodItemId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GroupOrderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems");
+                });
+
             modelBuilder.Entity("VideoDiningApp.Models.Otp", b =>
                 {
                     b.Property<int>("Id")
@@ -411,25 +410,6 @@ namespace VideoDiningApp.Migrations
                     b.ToTable("VideoCallSessions");
                 });
 
-            modelBuilder.Entity("OrderItem", b =>
-                {
-                    b.HasOne("VideoDiningApp.Models.FoodItem", "FoodItem")
-                        .WithMany()
-                        .HasForeignKey("FoodItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VideoDiningApp.Models.Order", "Order")
-                        .WithMany("OrderItems")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FoodItem");
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("VideoCallRequest", b =>
                 {
                     b.HasOne("VideoDiningApp.Models.User", "Friend")
@@ -511,6 +491,25 @@ namespace VideoDiningApp.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("VideoDiningApp.Models.OrderItem", b =>
+                {
+                    b.HasOne("VideoDiningApp.Models.FoodItem", "FoodItem")
+                        .WithMany()
+                        .HasForeignKey("FoodItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VideoDiningApp.Models.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FoodItem");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("VideoDiningApp.Models.Payment", b =>

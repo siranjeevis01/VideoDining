@@ -2,6 +2,6 @@
 {
     public class PaymentLinkRequest
     {
-        public Guid GroupOrderId { get; set; }  // FIXED: Added Group Order ID
+        public Guid GroupOrderId { get; set; } 
     }
 }

@@ -56,11 +56,13 @@ public class OrderController : ControllerBase
             return BadRequest(new { message = "One or more food items do not exist." });
 
         decimal totalAmount = validFoodItems.Sum(f => f.Price);
+
         Guid groupOrderId = Guid.NewGuid();
 
         var userOrder = new Order
         {
             UserId = user.Id,
+            UserEmail = user.Email,  // Ensure UserEmail is set
             FoodItemsSerialized = JsonConvert.SerializeObject(validFoodItems.Select(f => f.Id).ToList()),
             TotalAmount = totalAmount,
             EstimatedDeliveryTime = DateTime.UtcNow.AddMinutes(30),
@@ -72,8 +74,7 @@ public class OrderController : ControllerBase
         _context.Orders.Add(userOrder);
         await _context.SaveChangesAsync();
 
-        Console.WriteLine("Valid food items count: " + validFoodItems.Count);
-        Console.WriteLine("Total calculated amount: " + totalAmount);
+        Console.WriteLine("New GroupOrderId: " + groupOrderId);
 
         return Ok(new
         {
@@ -189,15 +190,21 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("get-latest-group-order")]
-    public IActionResult GetLatestGroupOrder()
+    public async Task<IActionResult> GetLatestGroupOrder()
     {
-        var latestOrder = _context.Orders.OrderByDescending(o => o.CreatedAt).FirstOrDefault();
+        var latestOrder = await _context.Orders
+            .OrderByDescending(o => o.Id)
+            .FirstOrDefaultAsync();
+
         if (latestOrder == null)
-            return NotFound(new { message = "No orders found." });
+            return NotFound(new { message = "No orders found. Please place an order first." });
 
-        return Ok(new { groupOrderId = latestOrder.GroupOrderId });
+        return Ok(new
+        {
+            groupOrderId = latestOrder.GroupOrderId,
+            orderId = latestOrder.Id 
+        });
     }
-
 }
 
 

@@ -122,6 +122,7 @@ D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\VideoDiningApp.
 D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\VideoDiningApp.csproj.CoreCompileInputs.cache
 D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\VideoDiningApp.MvcApplicationPartsAssemblyInfo.cs
 D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\VideoDiningApp.MvcApplicationPartsAssemblyInfo.cache
+D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\VideoDiningApp.sourcelink.json
 D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\scopedcss\bundle\VideoDiningApp.styles.css
 D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\staticwebassets.build.json
 D:\Dotnet Project\VideoDiningApp\VideoDiningApp\obj\Debug\net8.0\staticwebassets.development.json

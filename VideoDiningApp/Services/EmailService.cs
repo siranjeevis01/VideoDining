@@ -12,9 +12,9 @@ namespace VideoDiningApp.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
-        private readonly AppDbContext _context; // ✅ Define `_context`
+        private readonly AppDbContext _context; 
 
-        public EmailService(IConfiguration configuration, AppDbContext context) // ✅ Inject `AppDbContext`
+        public EmailService(IConfiguration configuration, AppDbContext context) 
         {
             _configuration = configuration;
             _context = context;
@@ -22,14 +22,14 @@ namespace VideoDiningApp.Services
 
         public async Task<bool> ValidateOtpAsync(string email, string otp)
         {
-            var storedOtp = await _context.Otps.FirstOrDefaultAsync(o => o.Email == email && o.Code == otp); // ✅ Now `_context` is available
+            var storedOtp = await _context.Otps.FirstOrDefaultAsync(o => o.Email == email && o.Code == otp);
             return storedOtp != null;
         }
 
         public async Task<bool> SendEmailAsync(List<string> recipients, string subject, string body)
         {
             if (recipients == null || recipients.Count == 0)
-                return false; // ❌ No recipients
+                return false; 
 
             try
             {
@@ -37,15 +37,14 @@ namespace VideoDiningApp.Services
                 {
                     await SendEmailToSingleRecipientAsync(recipient, subject, body);
                 }
-                return true; // ✅ Email sent successfully
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Email sending failed: {ex.Message}");
-                return false; // ❌ Email sending failed
+                return false;
             }
         }
-
 
         private async Task SendEmailToSingleRecipientAsync(string to, string subject, string body)
         {

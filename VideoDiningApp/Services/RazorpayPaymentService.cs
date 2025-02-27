@@ -78,9 +78,23 @@ public class RazorpayPaymentService : IPaymentService
         order.PaymentStatus = PaymentStatus.COMPLETED;
         await _orderRepository.UpdateOrder(order.Id, order);
 
+        // ✅ **Fix: Save the Payment Record in DB**
+        var payment = new Payment
+        {
+            OrderId = order.Id,
+            Amount = order.TotalAmount,
+            PaymentStatus = PaymentStatus.COMPLETED,
+            PaymentMethod = "Razorpay",
+            TransactionId = GeneratePaymentId(),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _orderRepository.SavePaymentAsync(payment);
+        Console.WriteLine($"Payment record created for Order ID: {order.Id}, Amount: {order.TotalAmount}");
+
         return new PaymentResponse
         {
-            PaymentId = GeneratePaymentId(),
+            PaymentId = payment.TransactionId,
             Status = PaymentStatus.COMPLETED,
             Amount = order.TotalAmount,
             Timestamp = DateTime.UtcNow,

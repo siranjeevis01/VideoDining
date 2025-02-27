@@ -646,6 +646,18 @@
         }
       }
     },
+    "/api/orders/get-latest-group-order": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Payment/send-otp": {
       "post": {
         "tags": [

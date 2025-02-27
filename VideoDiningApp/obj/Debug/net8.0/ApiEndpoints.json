@@ -319,6 +319,16 @@
   },
   {
     "ContainingType": "OrderController",
+    "Method": "GetLatestGroupOrder",
+    "RelativePath": "api/orders/get-latest-group-order",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "OrderController",
     "Method": "GetOrder",
     "RelativePath": "api/orders/get-order/{orderId}",
     "HttpMethod": "GET",

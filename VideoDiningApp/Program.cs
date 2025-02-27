@@ -12,7 +12,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 var allowedOrigins = builder.Environment.IsDevelopment()
-    ? new[] { "http://localhost:3000" }
+    ? new[] { "http://localhost:3000", "http://localhost:3001" }
     : new[] { "https://yourproductiondomain.com" };
 
 builder.Services.AddCors(options =>

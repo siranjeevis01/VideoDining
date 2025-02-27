@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using VideoDiningApp.Data;
 using VideoDiningApp.Enums;
 using VideoDiningApp.DTOs;
+using Newtonsoft.Json;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -78,24 +79,29 @@ public class PaymentController : ControllerBase
     [HttpPost("process-payment")]
     public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequest request)
     {
-        if (request.OrderId <= 0 || request.GroupOrderId == Guid.Empty || string.IsNullOrEmpty(request.PaymentDetails) || string.IsNullOrEmpty(request.Email))
+        _logger.LogInformation($"Processing payment: {JsonConvert.SerializeObject(request)}");
+
+        if (request.OrderId <= 0 || request.GroupOrderId == Guid.Empty || string.IsNullOrEmpty(request.PaymentDetails) || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Otp))
             return BadRequest(new { message = "Invalid payment details." });
 
-        if (!_otpService.ValidateOtp(request.Email, request.Otp))
-            return BadRequest(new { message = "Invalid or expired OTP. Verify OTP before payment." });
+        // ✅ Validate OTP before proceeding with payment
+        bool isOtpValid = _otpService.ValidateOtp(request.Email, request.Otp);
+        if (!isOtpValid)
+            return BadRequest(new { message = "Invalid or expired OTP. Please verify OTP before making payment." });
 
         using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
+            // ✅ Ensure the payment isn't already recorded
             var existingPayment = await _dbContext.Payments
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.GroupOrderId == request.GroupOrderId && p.UserEmail == request.Email);
 
             if (existingPayment != null && existingPayment.Status == "SUCCESS")
-                return BadRequest(new { message = "Payment already processed." });
+                return BadRequest(new { message = "Payment already processed for this user." });
 
-            var order = await _dbContext.Orders
-                .FirstOrDefaultAsync(o => o.Id == request.OrderId && o.GroupOrderId == request.GroupOrderId);
+            var order = _dbContext.Orders
+                .FirstOrDefault(o => o.GroupOrderId == request.GroupOrderId && o.Id == request.OrderId);
 
             if (order == null)
                 return NotFound(new { message = "Order not found for this Group Order." });
@@ -105,18 +111,22 @@ public class PaymentController : ControllerBase
                 .ToListAsync();
 
             if (!orderItems.Any())
+            {
+                _logger.LogError($"No order items found for user {request.Email} with GroupOrderId {request.GroupOrderId}");
                 return NotFound(new { message = "No order items found for this user." });
+            }
 
             decimal amountToPay = orderItems.Sum(i => i.Price * i.Quantity);
 
+            // ✅ Store payment details in the database
             var payment = new Payment
             {
                 OrderId = request.OrderId,
                 GroupOrderId = request.GroupOrderId,
                 UserEmail = request.Email,
-                PaymentId = request.PaymentDetails,
+                PaymentId = $"FAKE_{Guid.NewGuid()}",
                 Amount = amountToPay,
-                Status = "SUCCESS",
+                Status = "SUCCESS",  // Fake successful payment
                 RazorpaySignature = request.RazorpaySignature,
                 CreatedAt = DateTime.UtcNow
             };
@@ -127,6 +137,7 @@ public class PaymentController : ControllerBase
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            // ✅ Send a payment confirmation email
             string subject = "Payment Confirmation";
             string message = $"Your payment of ${amountToPay} for Group Order {request.GroupOrderId} was successful.";
             await _emailService.SendEmailAsync(new List<string> { request.Email }, subject, message);
@@ -137,7 +148,7 @@ public class PaymentController : ControllerBase
         {
             _logger.LogError(ex, "Error processing payment.");
             await transaction.RollbackAsync();
-            return StatusCode(500, new { message = "Payment processing failed." });
+            return StatusCode(500, new { message = "Payment processing failed due to an internal error." });
         }
     }
 
@@ -148,7 +159,7 @@ public class PaymentController : ControllerBase
         try
         {
             var orderItems = await _dbContext.OrderItems
-                .Where(i => i.GroupOrderId == cancelRequest.GroupOrderId && i.UserEmail == cancelRequest.UserEmail)
+                .Where(i => i.GroupOrderId == cancelRequest.GroupOrderId && i.UserEmail == cancelRequest.UserEmail) // ✅ Use UserEmail
                 .ToListAsync();
 
             if (!orderItems.Any())
@@ -171,9 +182,10 @@ public class PaymentController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cancelling order.");
+            _logger.LogError(ex, "Error processing payment.");
+            Console.WriteLine(ex);  
             await transaction.RollbackAsync();
-            return StatusCode(500, new { message = "Error cancelling order." });
+            return StatusCode(500, new { message = "Payment processing failed due to an internal error." });
         }
     }
 
@@ -196,7 +208,7 @@ public class PaymentController : ControllerBase
             decimal totalAmount = items.Sum(i => i.Price * i.Quantity);
             string itemDetails = string.Join("\n", items.Select(i => $"{i.FoodItem} x {i.Quantity} - ${i.Price * i.Quantity}"));
 
-            // ✅ Localhost payment & cancel links
+            // Localhost payment & cancel links
             string paymentLink = $"https://localhost:7179/pay?groupOrderId={request.GroupOrderId}&email={email}";
             string cancelLink = $"https://localhost:7179/cancel?groupOrderId={request.GroupOrderId}&email={email}";
 
@@ -205,6 +217,6 @@ public class PaymentController : ControllerBase
             await _emailService.SendEmailAsync(new List<string> { email }, "Complete Your Payment", emailBody);
         }
 
-        return Ok(new { message = "Payment links sent." });
+        return Ok(new { message = "Payment links sent successfully." });
     }
 }

@@ -1,23 +1,23 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using VideoDiningApp.Models;  // Ensure this is included
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using VideoDiningApp.Enums;
 
-namespace VideoDiningApp.Models
+public class Payment
 {
-    public class Payment
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [ForeignKey("Order")]
-        public int OrderId { get; set; }  // ✅ Now correctly an int
+    [ForeignKey("Order")]
+    public int OrderId { get; set; }
+    public Order Order { get; set; }
+    public string UserEmail { get; set; }
+    public string PaymentId { get; set; }
+    public string RazorpaySignature { get; set; }
+    public decimal Amount { get; set; }
+    public string Status { get; set; }
+    public Guid GroupOrderId { get; set; }  
 
-        public Order Order { get; set; }  // ✅ Ensures relationship
-        public string UserEmail { get; set; }  // ✅ Add this
-        public string PaymentId { get; set; }
-        public string RazorpaySignature { get; set; }
-        public decimal Amount { get; set; }
-        public string Status { get; set; }
-        public Guid GroupOrderId { get; set; }  // ✅ Add this
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public PaymentStatus PaymentStatus { get; set; }
+    public string PaymentMethod { get; set; }
+    public string TransactionId { get; set; }
 }

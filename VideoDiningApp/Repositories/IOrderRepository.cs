@@ -18,5 +18,6 @@ namespace VideoDiningApp.Repositories
         Task<Order> GetOrderByUserAndGroupId(int userId, Guid groupOrderId); 
         Task<List<Order>> GetOrdersByGroupId(Guid groupOrderId); 
         Task<bool> MarkGroupOrderAsPaid(Guid groupOrderId);
+        Task<bool> SavePaymentAsync(Payment payment);
     }
 }

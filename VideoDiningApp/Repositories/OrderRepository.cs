@@ -23,28 +23,12 @@ namespace VideoDiningApp.Repositories
 
         public async Task<Order> CreateOrder(Order order)
         {
-            if (order.GroupOrderId == Guid.Empty)
-            {
-                // If GroupOrderId is not provided, generate a new one (First order in the group)
-                order.GroupOrderId = Guid.NewGuid();
-            }
-            else
-            {
-                // Ensure all friends use the same GroupOrderId
-                var existingGroupOrder = await _context.Orders
-                    .FirstOrDefaultAsync(o => o.GroupOrderId == order.GroupOrderId);
-
-                if (existingGroupOrder != null)
-                {
-                    order.GroupOrderId = existingGroupOrder.GroupOrderId; // Assign the same group ID
-                }
-            }
+            order.GroupOrderId = Guid.NewGuid();
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
             return order;
         }
-
 
         public async Task<IEnumerable<Order>> GetAllOrders()
         {
@@ -137,5 +121,11 @@ namespace VideoDiningApp.Repositories
             return allPaid;
         }
 
+        public async Task<bool> SavePaymentAsync(Payment payment)
+        {
+            _context.Payments.Add(payment);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
     }
 }
