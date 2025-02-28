@@ -9,6 +9,7 @@ namespace VideoDiningApp.Models
         public int Id { get; set; }
 
         public int CartId { get; set; }
+        public Guid GroupOrderId { get; set; }
         public int FoodItemId { get; set; }
         public int Quantity { get; set; }
 

@@ -8,9 +8,8 @@ namespace VideoDiningApp.Models
     {
         [Key]
         public int Id { get; set; }
-
-        public int UserId { get; set; } 
-
+        public int UserId { get; set; }
+        public Guid GroupOrderId { get; set; }
         public ICollection<CartItem> Items { get; set; } = new List<CartItem>();
 
         [ForeignKey("UserId")]

@@ -11,9 +11,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure CORS to allow the React App
 var allowedOrigins = builder.Environment.IsDevelopment()
-    ? new[] { "http://localhost:3000", "http://localhost:3001" }
-    : new[] { "https://yourproductiondomain.com" };
+    ? new[] { "http://localhost:3000" }  // Development origin
+    : new[] { "https://yourproductiondomain.com" };  // Production origin
 
 builder.Services.AddCors(options =>
 {
@@ -24,6 +25,7 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 
+// Configure Controllers with custom JSON options
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -31,6 +33,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
+// Register Repositories and Services
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
@@ -42,20 +45,28 @@ builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
+// Use Fake or Razorpay Payment Service based on config
 var useFakePayment = builder.Configuration.GetValue<bool>("PaymentSettings:UseFakePayment");
-
 if (useFakePayment)
+{
     builder.Services.AddScoped<IPaymentService, FakePaymentService>();
+}
 else
+{
     builder.Services.AddScoped<IPaymentService, RazorpayPaymentService>();
+}
 
+// Configure DbContext with MySQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
         new MySqlServerVersion(new Version(8, 0, 32))));
 
+// Add SignalR for real-time communication
 builder.Services.AddSignalR();
 
+// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -79,11 +90,12 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            new string[] { }
         }
     });
 });
 
+// Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is missing. Check appsettings.json.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "localhost";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "localhost";
@@ -106,10 +118,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+// Apply database migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate(); 
+    dbContext.Database.Migrate();
 }
 
 if (app.Environment.IsDevelopment())
@@ -125,9 +138,10 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Map controllers and SignalR hubs
 app.MapControllers();
-
 app.MapHub<OrderHub>("/orderHub");
 app.MapHub<VideoCallHub>("/videocallHub");
 
+// Run the application
 app.Run();

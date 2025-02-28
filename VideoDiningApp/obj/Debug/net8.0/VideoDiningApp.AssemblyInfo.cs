@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VideoDiningApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+88a43e0c848d657417c710f065bd2334381c1f8d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+489ebaf89859747005c145b1261971e6ff6540f3")]
 [assembly: System.Reflection.AssemblyProductAttribute("VideoDiningApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VideoDiningApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

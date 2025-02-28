@@ -1,22 +1,6 @@
 [
   {
     "ContainingType": "CartController",
-    "Method": "GetCart",
-    "RelativePath": "api/cart/{userId}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "userId",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "CartController",
     "Method": "AddToCart",
     "RelativePath": "api/cart/add",
     "HttpMethod": "POST",
@@ -25,7 +9,23 @@
     "Parameters": [
       {
         "Name": "cartItem",
-        "Type": "CartItemDto",
+        "Type": "CartController\u002BCartItemDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CartController",
+    "Method": "GetCartByGroupOrder",
+    "RelativePath": "api/cart/group/{groupOrderId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "groupOrderId",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
@@ -319,6 +319,22 @@
   },
   {
     "ContainingType": "OrderController",
+    "Method": "GetOrderItems",
+    "RelativePath": "api/orders/get-items/{orderId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "orderId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "OrderController",
     "Method": "GetLatestGroupOrder",
     "RelativePath": "api/orders/get-latest-group-order",
     "HttpMethod": "GET",
@@ -337,6 +353,22 @@
     "Parameters": [
       {
         "Name": "orderId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "OrderController",
+    "Method": "GetGroupOrderByUserId",
+    "RelativePath": "api/orders/group/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
         "Type": "System.Int32",
         "IsRequired": true
       }

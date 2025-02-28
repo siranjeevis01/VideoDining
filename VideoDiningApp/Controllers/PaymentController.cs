@@ -63,6 +63,9 @@ public class PaymentController : ControllerBase
     {
         _logger.LogInformation($"Verifying OTP for {request.Email} (Group OrderId {request.GroupOrderId})");
 
+        if (string.IsNullOrEmpty(request.RazorpaySignature))
+            return BadRequest(new { message = "Missing Razorpay signature." });
+
         bool isOtpValid = _otpService.ValidateOtp(request.Email, request.Otp);
         if (!isOtpValid)
             return BadRequest(new { message = "Invalid OTP!" });
@@ -87,7 +90,10 @@ public class PaymentController : ControllerBase
         // ✅ Validate OTP before proceeding with payment
         bool isOtpValid = _otpService.ValidateOtp(request.Email, request.Otp);
         if (!isOtpValid)
+        {
+            _logger.LogError($"Invalid or expired OTP for user: {request.Email}, GroupOrderId: {request.GroupOrderId}");
             return BadRequest(new { message = "Invalid or expired OTP. Please verify OTP before making payment." });
+        }
 
         using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
@@ -98,13 +104,19 @@ public class PaymentController : ControllerBase
                 .FirstOrDefaultAsync(p => p.GroupOrderId == request.GroupOrderId && p.UserEmail == request.Email);
 
             if (existingPayment != null && existingPayment.Status == "SUCCESS")
+            {
+                _logger.LogWarning($"Payment already processed for user: {request.Email}, GroupOrderId: {request.GroupOrderId}");
                 return BadRequest(new { message = "Payment already processed for this user." });
+            }
 
-            var order = _dbContext.Orders
-                .FirstOrDefault(o => o.GroupOrderId == request.GroupOrderId && o.Id == request.OrderId);
+            var order = await _dbContext.Orders
+                .FirstOrDefaultAsync(o => o.GroupOrderId == request.GroupOrderId && o.Id == request.OrderId);
 
             if (order == null)
+            {
+                _logger.LogError($"Order not found for GroupOrderId: {request.GroupOrderId}, OrderId: {request.OrderId}");
                 return NotFound(new { message = "Order not found for this Group Order." });
+            }
 
             var orderItems = await _dbContext.OrderItems
                 .Where(i => i.GroupOrderId == request.GroupOrderId && i.UserEmail == request.Email)
@@ -112,7 +124,7 @@ public class PaymentController : ControllerBase
 
             if (!orderItems.Any())
             {
-                _logger.LogError($"No order items found for user {request.Email} with GroupOrderId {request.GroupOrderId}");
+                _logger.LogError($"No order items found for user: {request.Email}, GroupOrderId: {request.GroupOrderId}");
                 return NotFound(new { message = "No order items found for this user." });
             }
 

@@ -20,6 +20,11 @@ namespace VideoDiningApp.Hubs
             await Clients.Group(userId.ToString()).SendAsync("ReceiveOrderUpdate", message);
         }
 
+        public async Task NotifyCartUpdate(int groupOrderId)
+        {
+            await Clients.Group(groupOrderId.ToString()).SendAsync("CartUpdated");
+        }
+
         public async Task NotifyVideoCall(int userId, string videoCallUrl)
         {
             await Clients.User(userId.ToString()).SendAsync("StartVideoCall", videoCallUrl);

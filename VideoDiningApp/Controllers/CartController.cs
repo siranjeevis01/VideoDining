@@ -24,63 +24,73 @@ public class CartController : ControllerBase
     [HttpPost("add")]
     public async Task<IActionResult> AddToCart([FromBody] CartItemDto cartItem)
     {
-        var food = await _context.FoodItems.FindAsync(cartItem.FoodItemId);  
+        var food = await _context.FoodItems.FindAsync(cartItem.FoodItemId);
         if (food == null)
             return NotFound(new { message = "Food item not found." });
 
-        var cart = await _context.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.UserId == cartItem.UserId);
+        var cart = await _context.Carts.Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.UserId == cartItem.UserId);
+
         if (cart == null)
         {
-            cart = new Cart { UserId = cartItem.UserId, Items = new List<CartItem>() };
+            var groupOrderId = Guid.NewGuid();  
+            cart = new Cart
+            {
+                UserId = cartItem.UserId,
+                Items = new List<CartItem>(),
+                GroupOrderId = groupOrderId 
+            };
             _context.Carts.Add(cart);
         }
 
-        cart.Items.Add(new CartItem { FoodItemId = food.Id, Quantity = cartItem.Quantity });  
-        await _context.SaveChangesAsync();
+        cart.Items.Add(new CartItem { FoodItemId = food.Id, Quantity = cartItem.Quantity, GroupOrderId = cart.GroupOrderId });
 
-        await _hubContext.Clients.All.SendAsync("CartUpdated", cart.UserId);
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.Group(cart.UserId.ToString()).SendAsync("CartUpdated");
 
         return Ok(cart);
     }
 
     [HttpDelete("remove/{userId}/{foodItemId}")]
-    public async Task<IActionResult> RemoveFromCart(int userId, int foodItemId)  
+    public async Task<IActionResult> RemoveFromCart(int userId, int foodItemId)
     {
         var cart = await _context.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.UserId == userId);
-        if (cart == null || !cart.Items.Any(i => i.FoodItemId == foodItemId))  
+        if (cart == null || !cart.Items.Any(i => i.FoodItemId == foodItemId))
             return NotFound(new { message = "Item not found in cart." });
 
-        var itemToRemove = cart.Items.FirstOrDefault(i => i.FoodItemId == foodItemId);  
-        if (itemToRemove != null)
-        {
-            cart.Items.Remove(itemToRemove); 
-        }
+        var itemToRemove = cart.Items.FirstOrDefault(i => i.FoodItemId == foodItemId);
+        cart.Items.Remove(itemToRemove);
 
         await _context.SaveChangesAsync();
-
-        await _hubContext.Clients.All.SendAsync("CartUpdated", userId);
+        await _hubContext.Clients.Group(userId.ToString()).SendAsync("CartUpdated");
 
         return Ok(cart);
     }
 
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetCart(int userId)
+    [HttpGet("group/{groupOrderId}")]
+    public async Task<IActionResult> GetCartByGroupOrder(Guid groupOrderId)
     {
-        var cart = await _context.Carts
-            .Include(c => c.Items)
-            .ThenInclude(i => i.FoodItem)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
+        if (groupOrderId == Guid.Empty)
+        {
+            return BadRequest("Invalid Group Order ID");
+        }
 
-        if (cart == null)
-            return Ok(new { Items = new List<CartItem>() });
+        var cartItems = await _context.CartItems
+            .Where(c => c.GroupOrderId == groupOrderId)
+            .ToListAsync();
 
-        return Ok(cart);
+        if (cartItems == null || !cartItems.Any())
+        {
+            return NotFound("Cart is empty or group order does not exist");
+        }
+
+        return Ok(cartItems);
     }
-}
 
-public class CartItemDto
-{
-    public int UserId { get; set; }
-    public int FoodItemId { get; set; }  
-    public int Quantity { get; set; }
+    public class CartItemDto
+    {
+        public int UserId { get; set; }
+        public int FoodItemId { get; set; }
+        public int Quantity { get; set; }
+    }
 }

@@ -129,7 +129,7 @@ namespace VideoDiningApp.Controllers
                 using var stream = new FileStream(filePath, FileMode.Create);
                 await avatar.CopyToAsync(stream);
 
-                existingUser.Avatar = $"/uploads/{uniqueFileName}"; 
+                existingUser.Avatar = $"/uploads/{uniqueFileName}";
             }
 
             await _userRepository.UpdateUserAsync(existingUser);
@@ -152,7 +152,10 @@ namespace VideoDiningApp.Controllers
 
             await _userRepository.UpdateUserAsync(user);
 
-            string resetLink = $"https://yourfrontend.com/reset-password?token={token}";
+            // Dynamically set frontend URL
+            string frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
+            string resetLink = $"{frontendUrl}/reset-password?token={token}";
+
             string emailBody = $"Click <a href='{resetLink}'>here</a> to reset your password.";
             await _emailService.SendEmailAsync(new List<string> { request.Email }, "Password Reset", emailBody);
 
@@ -175,11 +178,11 @@ namespace VideoDiningApp.Controllers
             return Ok("Password updated successfully.");
         }
 
-        [Authorize] 
+        [Authorize]
         [HttpGet("profile")]
         public async Task<IActionResult> GetUserProfile()
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value; 
+            var userIdClaim = User.FindFirst("UserId")?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                 return Unauthorized(new { message = "Invalid or missing token." });

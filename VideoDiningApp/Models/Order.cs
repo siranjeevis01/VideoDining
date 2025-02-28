@@ -49,7 +49,8 @@ public class Order
     [ForeignKey("UserId")]
     public User User { get; set; }
 
-    public Guid GroupOrderId { get; set; } = Guid.NewGuid(); 
+    [Column("GroupOrderId")]
+    public Guid GroupOrderId { get; set; }
 
     [Column("UserEmail")]
     [Required]
