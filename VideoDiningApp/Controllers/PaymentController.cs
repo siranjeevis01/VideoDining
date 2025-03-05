@@ -11,6 +11,7 @@ using VideoDiningApp.Data;
 using VideoDiningApp.Enums;
 using VideoDiningApp.DTOs;
 using Newtonsoft.Json;
+using SendGrid.Helpers.Mail;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -231,4 +232,29 @@ public class PaymentController : ControllerBase
 
         return Ok(new { message = "Payment links sent successfully." });
     }
+
+    [HttpPost("confirm-payment")]
+    public async Task<IActionResult> ConfirmPayment([FromBody] PaymentConfirmationRequest request)
+    {
+        var order = await _dbContext.Orders.Include(o => o.Participants)
+                                          .FirstOrDefaultAsync(o => o.Id == request.OrderId);
+
+        if (order == null) return NotFound("Order not found");
+
+        var participant = order.Participants.FirstOrDefault(p => p.UserId == request.UserId);
+        if (participant == null) return BadRequest("User not found in order");
+
+        participant.PaymentStatus = "Paid";
+        await _dbContext.SaveChangesAsync();
+
+        // Check if all friends have paid
+        if (order.Participants.All(p => p.PaymentStatus == "Paid"))
+        {
+            // Send confirmation email
+            await _emailService.SendOrderConfirmationEmail(order.Id);
+        }
+
+        return Ok("Payment confirmed");
+    }
+
 }

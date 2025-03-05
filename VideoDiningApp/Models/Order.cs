@@ -3,16 +3,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using VideoDiningApp.Enums;
 using VideoDiningApp.Models;
+using System.Collections.Generic;
 
 public class Order
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
-
+    public int CreatedByUserId { get; set; }
     public int UserId { get; set; }
     public PaymentStatus PaymentStatus { get; set; }
-    public virtual ICollection<Payment> Payments { get; set; }
+
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     private string _foodItemsSerialized;
 
@@ -22,7 +24,7 @@ public class Order
         set
         {
             _foodItemsSerialized = value;
-            _foodItems = string.IsNullOrEmpty(value) ? new List<int>() : JsonConvert.DeserializeObject<List<int>>(value);
+            _foodItems = !string.IsNullOrEmpty(value) ? JsonConvert.DeserializeObject<List<int>>(value) : new List<int>();
         }
     }
 
@@ -34,8 +36,8 @@ public class Order
         get => _foodItems ?? new List<int>();
         set
         {
-            _foodItems = value;
-            _foodItemsSerialized = JsonConvert.SerializeObject(value);
+            _foodItems = value ?? new List<int>();
+            _foodItemsSerialized = JsonConvert.SerializeObject(_foodItems);
         }
     }
 
@@ -52,10 +54,11 @@ public class Order
     [Column("GroupOrderId")]
     public Guid GroupOrderId { get; set; }
 
-    [Column("UserEmail")]
     [Required]
     public string UserEmail { get; set; }
 
     public string Status { get; set; }
+
+    public virtual ICollection<OrderParticipant> Participants { get; set; } = new List<OrderParticipant>();
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

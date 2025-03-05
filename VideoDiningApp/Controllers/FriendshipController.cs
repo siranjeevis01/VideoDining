@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using VideoDiningApp.Models;
 using VideoDiningApp.Repositories;
+using VideoDiningApp.Hubs;
 
 namespace VideoDiningApp.Controllers
 {
@@ -11,11 +13,13 @@ namespace VideoDiningApp.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IFriendshipRepository _friendshipRepository;
+        private readonly IHubContext<FriendshipHub> _friendshipHub;
 
-        public FriendshipController(IUserRepository userRepository, IFriendshipRepository friendshipRepository)
+        public FriendshipController(IUserRepository userRepository, IFriendshipRepository friendshipRepository, IHubContext<FriendshipHub> friendshipHub)
         {
             _userRepository = userRepository;
             _friendshipRepository = friendshipRepository;
+            _friendshipHub = friendshipHub;
         }
 
         [HttpPost("add")]
@@ -173,6 +177,93 @@ namespace VideoDiningApp.Controllers
             }
 
             return Ok(new { status = "Friends", message = "These users are friends." });
+        }
+
+        [HttpPost("request")]
+        public async Task<IActionResult> SendFriendRequest([FromBody] AddFriendRequest request)
+        {
+            if (request == null || request.User1Id <= 0 || request.User2Id <= 0)
+            {
+                return BadRequest(new { message = "Invalid request data." });
+            }
+
+            if (request.User1Id == request.User2Id)
+            {
+                return BadRequest(new { message = "You cannot send a friend request to yourself." });
+            }
+
+            var user1 = await _userRepository.GetUserByIdAsync(request.User1Id);
+            var user2 = await _userRepository.GetUserByIdAsync(request.User2Id);
+
+            if (user1 == null || user2 == null)
+            {
+                return NotFound(new { message = "One or both users do not exist." });
+            }
+
+            var existingRequest = await _friendshipRepository.GetFriendRequestAsync(request.User1Id, request.User2Id);
+            if (existingRequest != null)
+            {
+                return Conflict(new { message = "Friend request already sent." });
+            }
+
+            var friendRequest = new FriendRequest
+            {
+                SenderId = request.User1Id,
+                ReceiverId = request.User2Id
+            };
+
+            await _friendshipRepository.AddFriendRequestAsync(friendRequest);
+            return Ok(new { message = "Friend request sent successfully!" });
+        }
+
+        [HttpGet("pending/{userId}")]
+        public async Task<IActionResult> GetPendingRequests(int userId)
+        {
+            var requests = await _friendshipRepository.GetPendingRequestsAsync(userId);
+            return Ok(requests);
+        }
+
+        [HttpPost("accept")]
+        public async Task<IActionResult> AcceptFriendRequest([FromBody] AddFriendRequest request)
+        {
+            var friendRequest = await _friendshipRepository.GetFriendRequestAsync(request.User1Id, request.User2Id);
+            if (friendRequest == null)
+            {
+                return NotFound(new { message = "Friend request not found." });
+            }
+
+            var newFriendship = new Friendship
+            {
+                User1Id = request.User1Id,
+                User2Id = request.User2Id
+            };
+
+            await _friendshipRepository.AddFriendshipAsync(newFriendship);
+            await _friendshipRepository.RemoveFriendRequestAsync(friendRequest);
+
+            // Notify the sender about the accepted request
+            await _friendshipHub.Clients.User(request.User1Id.ToString())
+                .SendAsync("FriendRequestAccepted", request.User2Id);
+
+            return Ok(new { message = "Friend request accepted!" });
+        }
+
+        [HttpPost("reject")]
+        public async Task<IActionResult> RejectFriendRequest([FromBody] AddFriendRequest request)
+        {
+            var friendRequest = await _friendshipRepository.GetFriendRequestAsync(request.User1Id, request.User2Id);
+            if (friendRequest == null)
+            {
+                return NotFound(new { message = "Friend request not found." });
+            }
+
+            await _friendshipRepository.RemoveFriendRequestAsync(friendRequest);
+
+            // Notify the sender about the rejection
+            await _friendshipHub.Clients.User(request.User1Id.ToString())
+                .SendAsync("FriendRequestRejected", request.User2Id);
+
+            return Ok(new { message = "Friend request rejected." });
         }
     }
 }

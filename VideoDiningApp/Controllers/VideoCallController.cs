@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using VideoDiningApp.Data;
 using VideoDiningApp.Hubs;
 using VideoDiningApp.Models;
+using VideoDiningApp.Services;
 
 [Route("api/video-calls")]
 [ApiController]
@@ -15,11 +17,15 @@ public class VideoCallController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IHubContext<VideoCallHub> _videoCallHub;
+    private readonly IVideoCallService _videoCallService;
+    private readonly ILogger<VideoCallController> _logger;
 
-    public VideoCallController(AppDbContext context, IHubContext<VideoCallHub> videoCallHub)
+    public VideoCallController(AppDbContext context, IHubContext<VideoCallHub> videoCallHub, IVideoCallService videoCallService, ILogger<VideoCallController> logger)
     {
         _context = context;
         _videoCallHub = videoCallHub;
+        _videoCallService = videoCallService; 
+        _logger = logger;
     }
 
     [HttpPost("request")]
@@ -93,41 +99,25 @@ public class VideoCallController : ControllerBase
         return Ok(new { message = "Call request accepted.", videoCallUrl = callRequest.RoomUrl });
     }
 
-    [HttpPost("reject/{id}")]
-    public async Task<IActionResult> RejectCallRequest(int id)
+    [HttpPost("reject")]
+    public async Task<IActionResult> RejectCall([FromBody] RejectCallRequest request)
     {
-        var callRequest = await _context.VideoCallRequests.FindAsync(id);
-        if (callRequest == null || callRequest.Status != "Pending")
-            return NotFound(new { message = "Call request not found or already processed." });
+        var result = await _videoCallService.RejectCallAsync(request.UserId, request.CallId);
+        if (!result)
+            return BadRequest("Failed to reject call.");
 
-        callRequest.Status = "Rejected";
-        await _context.SaveChangesAsync();
-
-        await _videoCallHub.Clients.User(callRequest.UserId.ToString()).SendAsync("ReceiveCallNotification", "Your video call request was rejected.");
-
-        return Ok(new { message = "Call request rejected." });
+        return Ok("Call rejected successfully.");
     }
 
-    [HttpPost("end/{id}")]
-    public async Task<IActionResult> EndCall(int id)
+    // ✅ 3️⃣ Call End API
+    [HttpPost("end")]
+    public async Task<IActionResult> EndCall([FromBody] EndCallRequest request)
     {
-        var callRequest = await _context.VideoCallRequests.FindAsync(id);
-        if (callRequest == null || callRequest.Status != "Accepted")
-            return NotFound(new { message = "Active call not found." });
+        var result = await _videoCallService.EndCallAsync(request.CallId);
+        if (!result)
+            return BadRequest("Failed to end call.");
 
-        callRequest.Status = "Ended";
-        callRequest.EndedAt = DateTime.UtcNow;
-
-        if (callRequest.StartedAt.HasValue)
-        {
-            callRequest.Duration = callRequest.EndedAt - callRequest.StartedAt;
-        }
-
-        await _context.SaveChangesAsync();
-
-        await _videoCallHub.Clients.User(callRequest.FriendId.ToString()).SendAsync("EndVideoCall", "The video call has ended.");
-
-        return Ok(new { message = "Call ended successfully.", duration = callRequest.Duration });
+        return Ok("Call ended successfully.");
     }
 
     [HttpGet("active-calls")]
@@ -163,3 +153,13 @@ public class VideoCallRequestDto
     public List<int> FriendIds { get; set; }
 }
 
+public class RejectCallRequest
+{
+    public int UserId { get; set; }
+    public Guid CallId { get; set; }
+}
+
+public class EndCallRequest
+{
+    public Guid CallId { get; set; }
+}

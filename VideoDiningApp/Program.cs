@@ -47,7 +47,6 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
 builder.Services.AddScoped<ICartService, CartService>();
 
-// Use Fake or Razorpay Payment Service based on config
 var useFakePayment = builder.Configuration.GetValue<bool>("PaymentSettings:UseFakePayment");
 if (useFakePayment)
 {
@@ -58,15 +57,12 @@ else
     builder.Services.AddScoped<IPaymentService, RazorpayPaymentService>();
 }
 
-// Configure DbContext with MySQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
         new MySqlServerVersion(new Version(8, 0, 32))));
 
-// Add SignalR for real-time communication
 builder.Services.AddSignalR();
 
-// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -95,7 +91,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is missing. Check appsettings.json.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "localhost";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "localhost";
@@ -118,7 +113,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// Apply database migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -138,10 +132,9 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map controllers and SignalR hubs
 app.MapControllers();
 app.MapHub<OrderHub>("/orderHub");
 app.MapHub<VideoCallHub>("/videocallHub");
+app.MapHub<FriendshipHub>("/friendshipHub");
 
-// Run the application
 app.Run();

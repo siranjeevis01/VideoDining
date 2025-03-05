@@ -133,6 +133,22 @@
   },
   {
     "ContainingType": "VideoDiningApp.Controllers.FriendshipController",
+    "Method": "AcceptFriendRequest",
+    "RelativePath": "api/friends/accept",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "VideoDiningApp.Models.AddFriendRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VideoDiningApp.Controllers.FriendshipController",
     "Method": "AddFriend",
     "RelativePath": "api/friends/add",
     "HttpMethod": "POST",
@@ -181,6 +197,38 @@
   },
   {
     "ContainingType": "VideoDiningApp.Controllers.FriendshipController",
+    "Method": "GetPendingRequests",
+    "RelativePath": "api/friends/pending/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VideoDiningApp.Controllers.FriendshipController",
+    "Method": "RejectFriendRequest",
+    "RelativePath": "api/friends/reject",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "VideoDiningApp.Models.AddFriendRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VideoDiningApp.Controllers.FriendshipController",
     "Method": "RemoveFriend",
     "RelativePath": "api/friends/remove",
     "HttpMethod": "DELETE",
@@ -190,6 +238,22 @@
       {
         "Name": "request",
         "Type": "VideoDiningApp.Models.RemoveFriendRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VideoDiningApp.Controllers.FriendshipController",
+    "Method": "SendFriendRequest",
+    "RelativePath": "api/friends/request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "VideoDiningApp.Models.AddFriendRequest",
         "IsRequired": true
       }
     ],
@@ -259,6 +323,22 @@
       {
         "Name": "userId",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "OrderController",
+    "Method": "CancelUnpaidOrders",
+    "RelativePath": "api/orders/cancel-unpaid-orders/{groupOrderId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "groupOrderId",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
@@ -449,6 +529,22 @@
       {
         "Name": "cancelRequest",
         "Type": "VideoDiningApp.DTOs.CancelOrderRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PaymentController",
+    "Method": "ConfirmPayment",
+    "RelativePath": "api/Payment/confirm-payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "VideoDiningApp.Models.PaymentConfirmationRequest",
         "IsRequired": true
       }
     ],
@@ -689,14 +785,14 @@
   {
     "ContainingType": "VideoCallController",
     "Method": "EndCall",
-    "RelativePath": "api/video-calls/end/{id}",
+    "RelativePath": "api/video-calls/end",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "id",
-        "Type": "System.Int32",
+        "Name": "request",
+        "Type": "EndCallRequest",
         "IsRequired": true
       }
     ],
@@ -704,15 +800,15 @@
   },
   {
     "ContainingType": "VideoCallController",
-    "Method": "RejectCallRequest",
-    "RelativePath": "api/video-calls/reject/{id}",
+    "Method": "RejectCall",
+    "RelativePath": "api/video-calls/reject",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "id",
-        "Type": "System.Int32",
+        "Name": "request",
+        "Type": "RejectCallRequest",
         "IsRequired": true
       }
     ],

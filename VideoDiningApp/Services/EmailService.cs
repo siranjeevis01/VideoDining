@@ -20,6 +20,12 @@ namespace VideoDiningApp.Services
             _context = context;
         }
 
+        private async Task SendEmail(string recipient, string subject, string message)
+        {
+            Console.WriteLine($"Sending email to {recipient}: {subject} - {message}");
+            await Task.CompletedTask; 
+        }
+
         public async Task<bool> ValidateOtpAsync(string email, string otp)
         {
             var storedOtp = await _context.Otps.FirstOrDefaultAsync(o => o.Email == email && o.Code == otp);
@@ -160,6 +166,44 @@ namespace VideoDiningApp.Services
 
             await SendEmailAsync(new List<string> { userEmail }, subject, body);
         }
+
+        public async Task SendPaymentLinkEmail(int userId, string paymentLink)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                string subject = "Complete Your Payment";
+                string body = $"Click here to pay for your order: {paymentLink}";
+                await SendEmail(user.Email, subject, body);
+            }
+        }
+
+        public async Task SendOrderConfirmationEmail(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Participants)
+                .ThenInclude(p => p.User)  
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                Console.WriteLine($"Order not found: {orderId}");
+                return;
+            }
+
+            string subject = "Order Confirmation";
+            string message = $"Your order {order.Id} has been successfully placed.";
+
+            foreach (var participant in order.Participants)
+            {
+                string userEmail = participant.User?.Email; 
+                if (!string.IsNullOrEmpty(userEmail))
+                {
+                    await SendEmail(userEmail, subject, message);
+                }
+            }
+        }
+
         public async Task SendCancellationNotificationAsync(string userEmail, int orderId)
         {
             try

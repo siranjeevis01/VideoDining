@@ -7,6 +7,8 @@ using VideoDiningApp.Repositories;
 using Microsoft.Extensions.Logging;
 using VideoDiningApp.Enums;
 using VideoDiningApp.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VideoDiningApp.Services
 {
@@ -16,13 +18,15 @@ namespace VideoDiningApp.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IEmailService _emailService;
         private readonly ILogger<OrderService> _logger;
+        private readonly Lazy<IPaymentService> _paymentService;
 
-        public OrderService(AppDbContext context, IOrderRepository orderRepository, IEmailService emailService, ILogger<OrderService> logger)
+        public OrderService(AppDbContext context, IOrderRepository orderRepository, IEmailService emailService, ILogger<OrderService> logger, IServiceProvider serviceProvider)
         {
             _context = context;
             _orderRepository = orderRepository;
             _emailService = emailService;
             _logger = logger;
+            _paymentService = new Lazy<IPaymentService>(() => serviceProvider.GetRequiredService<IPaymentService>());
         }
 
         public async Task<string> ConfirmDeliveryAsync(int userId, Guid groupOrderId)
@@ -30,34 +34,23 @@ namespace VideoDiningApp.Services
             try
             {
                 var orders = await _orderRepository.GetOrdersByGroupId(groupOrderId);
-                if (orders == null || orders.Count == 0)
-                {
+                if (orders == null || !orders.Any())
                     return "Group order not found.";
-                }
 
-                var allPaid = orders.All(o => o.PaymentStatus == PaymentStatus.COMPLETED);
-                if (!allPaid)
-                {
+                if (orders.Any(o => o.PaymentStatus != PaymentStatus.COMPLETED))
                     return "Payment not completed. Please complete the payment before confirming delivery.";
-                }
 
                 var userOrder = orders.FirstOrDefault(o => o.UserId == userId);
                 if (userOrder == null)
-                {
                     return "User order not found.";
-                }
 
                 userOrder.IsDelivered = true;
                 bool updated = await _orderRepository.UpdateOrder(userOrder.Id, userOrder);
                 if (!updated)
-                {
                     return "Failed to update order delivery status.";
-                }
 
                 if (orders.All(o => o.IsDelivered))
-                {
                     return "All group orders delivered. Delivery confirmation successful.";
-                }
 
                 return "Order marked as delivered. Waiting for others.";
             }
@@ -66,6 +59,32 @@ namespace VideoDiningApp.Services
                 _logger.LogError($"Error confirming delivery for GroupOrderId {groupOrderId}: {ex.Message}");
                 return "An error occurred while confirming the delivery.";
             }
+        }
+
+        public async Task CancelUnpaidOrders(Guid groupOrderId)
+        {
+            var orders = await _context.Orders
+                .Where(o => o.GroupOrderId == groupOrderId && o.PaymentStatus == PaymentStatus.PENDING)
+                .ToListAsync();
+
+            foreach (var order in orders)
+            {
+                order.PaymentStatus = PaymentStatus.CANCELED;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<OrderItem>> GetItemsForOrder(int orderId)
+        {
+            return await _context.OrderItems
+                                 .Where(item => item.OrderId == orderId)
+                                 .ToListAsync();
+        }
+
+        public async Task<List<OrderItem>> GetOrderItems(int orderId)
+        {
+            return await _context.OrderItems.Where(oi => oi.OrderId == orderId).ToListAsync();
         }
 
         public async Task<Order> GetOrderByIdAsync(int orderId)
@@ -80,7 +99,7 @@ namespace VideoDiningApp.Services
         public async Task<List<Order>> GetOrdersAsync()
         {
             var orders = await _orderRepository.GetAllOrders();
-            return orders.ToList(); 
+            return orders.ToList();
         }
 
         public async Task UpdateOrderAsync(Order order)
@@ -99,28 +118,22 @@ namespace VideoDiningApp.Services
         {
             var order = await _orderRepository.GetOrderById(orderId);
             if (order == null || order.UserEmail != userEmail)
-            {
                 return false;
-            }
 
             order.PaymentStatus = PaymentStatus.CANCELED;
             await _orderRepository.UpdateOrder(order.Id, order);
-
             await _emailService.SendCancellationNotificationAsync(userEmail, orderId);
 
             return true;
         }
+
         public decimal CalculateTotalAmount(List<OrderItem> items, int friendsCount)
         {
             if (items == null || !items.Any())
                 return 0;
 
             decimal subtotal = items.Sum(item => item.Price * item.Quantity);
-
-            int totalPeople = friendsCount + 1;
-            decimal totalAmount = subtotal * totalPeople;
-
-            return totalAmount;
+            return subtotal * (friendsCount + 1);
         }
 
         public void MarkOrderAsPaid(string email, Guid groupOrderId)
@@ -142,6 +155,27 @@ namespace VideoDiningApp.Services
 
             _context.SaveChanges();
             _logger.LogInformation($"Orders marked as paid for GroupOrderId: {groupOrderId}, Email: {email}");
+        }
+
+        public async Task GeneratePaymentsForOrder(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Participants)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+                throw new Exception("Order not found");
+
+            foreach (var participant in order.Participants)
+            {
+                if (participant.PaymentStatus == "Pending")
+                {
+                    string paymentId = await _paymentService.Value.GeneratePaymentLink(order.Id, participant.UserId, participant.Amount);
+                    participant.RazorpayPaymentId = paymentId;
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

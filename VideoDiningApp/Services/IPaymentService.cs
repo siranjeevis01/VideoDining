@@ -18,6 +18,7 @@ namespace VideoDiningApp.Services
         {
             return !string.IsNullOrEmpty(razorpaySignature) && razorpaySignature.StartsWith("SIGN_");
         }
+        Task<string> GeneratePaymentLink(int orderId, int userId, decimal amount);
     }
 
 }

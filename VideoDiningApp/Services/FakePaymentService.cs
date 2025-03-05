@@ -54,6 +54,10 @@ public class FakePaymentService : IPaymentService
             Message = "Payment successful!"
         };
     }
+    public async Task<string> GeneratePaymentLink(int orderId, int userId, decimal amount)
+    {
+        return await Task.FromResult($"https://localhost:7179/fake-payment?orderId={orderId}&userId={userId}&amount={amount}");
+    }
 
     public async Task<string> GenerateAndSendOtpAsync(int orderId, string userEmail)
     {

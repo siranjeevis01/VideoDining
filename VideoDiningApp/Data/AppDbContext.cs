@@ -17,9 +17,11 @@ namespace VideoDiningApp.Data
         public DbSet<Cart> Carts { get; set; }  
         public DbSet<CartItem> CartItems { get; set; }  
         public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<FriendRequest> FriendRequests { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Otp> Otps { get; set; }
+        public DbSet<VideoCall> VideoCalls { get; set; }
         public DbSet<VideoCallRequest> VideoCallRequests { get; set; }
         public DbSet<VideoCallSession> VideoCallSessions { get; set; }
 

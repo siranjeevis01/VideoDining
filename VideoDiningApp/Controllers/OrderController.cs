@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 [Route("api/orders")]
 [ApiController]
@@ -22,15 +23,17 @@ public class OrderController : ControllerBase
     private readonly IHubContext<OrderHub> _orderHub;
     private readonly IOrderService _orderService;
     private readonly ICartService _cartService;
+    private readonly ILogger<OrderController> _logger;
 
     public OrderController(AppDbContext context, IEmailService emailService,
-        IHubContext<OrderHub> orderHub, IOrderService orderService, ICartService cartService)
+        IHubContext<OrderHub> orderHub, IOrderService orderService, ICartService cartService, ILogger<OrderController> logger)
     {
         _context = context;
         _emailService = emailService;
         _orderHub = orderHub;
         _orderService = orderService;
         _cartService = cartService;
+        _logger = logger;
     }
 
     [HttpPost("create")]
@@ -75,7 +78,7 @@ public class OrderController : ControllerBase
         };
 
         _context.Orders.Add(userOrder);
-        await _context.SaveChangesAsync();  
+        await _context.SaveChangesAsync();
 
         foreach (var foodItem in validFoodItems)
         {
@@ -83,7 +86,7 @@ public class OrderController : ControllerBase
             {
                 OrderId = userOrder.Id,
                 FoodItemId = foodItem.Id,
-                Quantity = 1, // Adjust quantity logic as per your requirement
+                Quantity = 1,
                 Price = foodItem.Price,
                 GroupOrderId = groupOrderId,
                 UserEmail = user.Email
@@ -91,7 +94,7 @@ public class OrderController : ControllerBase
             _context.OrderItems.Add(orderItem);
         }
 
-        await _context.SaveChangesAsync(); 
+        await _context.SaveChangesAsync();
 
         await _orderHub.Clients.Group(userOrder.UserId.ToString()).SendAsync("ReceiveOrderUpdate", "Order created successfully!");
 
@@ -103,17 +106,24 @@ public class OrderController : ControllerBase
             totalAmount = userOrder.TotalAmount,
             estimatedDeliveryTime = userOrder.EstimatedDeliveryTime,
             groupOrderId = userOrder.GroupOrderId.ToString(),
-            foodItems = validFoodItems.Select(f => new { f.Id, f.Name, f.Price })
+            foodItems = validFoodItems.Select(f => new { f.Id, f.Name, f.Price })   
         });
     }
 
     [HttpGet("get-items/{orderId}")]
     public async Task<IActionResult> GetOrderItems(int orderId)
     {
-        var orderItems = await _context.OrderItems.Where(o => o.OrderId == orderId).ToListAsync();
-        if (orderItems == null || orderItems.Count == 0)
+        _logger.LogInformation($"Fetching items for OrderId: {orderId}");
+
+        var items = await _orderService.GetOrderItems(orderId); 
+
+        if (items == null || !items.Any()) 
+        {
+            _logger.LogWarning($"No items found for OrderId: {orderId}");
             return NotFound("No order items found for this order.");
-        return Ok(orderItems);
+        }
+
+        return Ok(items);
     }
 
     [HttpGet("get-order/{orderId}")]
@@ -155,6 +165,10 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> GetOrderHistory()
     {
         var orders = await _orderService.GetOrdersAsync();
+
+        if (orders == null || !orders.Any())
+            return NotFound("No orders found.");
+
         return Ok(orders);
     }
 
@@ -240,6 +254,13 @@ public class OrderController : ControllerBase
             return NotFound(new { message = "No group order found." });
 
         return Ok(new { groupOrderId = groupOrderId.ToString() });
+    }
+
+    [HttpDelete("cancel-unpaid-orders/{groupOrderId}")]
+    public async Task<IActionResult> CancelUnpaidOrders(Guid groupOrderId)
+    {
+        await _orderService.CancelUnpaidOrders(groupOrderId);
+        return Ok(new { Message = "Unpaid orders canceled" });
     }
 
     [HttpGet("get-latest-group-order")]

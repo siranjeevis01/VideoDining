@@ -7,17 +7,21 @@ using VideoDiningApp.Enums;
 using VideoDiningApp.Models;
 using VideoDiningApp.Repositories;
 using VideoDiningApp.Services;
+using Microsoft.EntityFrameworkCore;
+using VideoDiningApp.Data;
 
 public class RazorpayPaymentService : IPaymentService
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly AppDbContext _dbContext;
     private readonly IEmailService _emailService;
     private static readonly ConcurrentDictionary<int, (string Otp, DateTime Expiry)> _otpStorage = new();
 
-    public RazorpayPaymentService(IOrderRepository orderRepository, IEmailService emailService)
+    public RazorpayPaymentService(IOrderRepository orderRepository, IEmailService emailService, AppDbContext dbContext)
     {
         _orderRepository = orderRepository;
         _emailService = emailService;
+        _dbContext = dbContext;
     }
 
     public async Task<string> GenerateAndSendOtpAsync(int orderId, string userEmail)
@@ -102,6 +106,23 @@ public class RazorpayPaymentService : IPaymentService
         };
     }
 
+    public async Task AutoCancelUnpaidOrders()
+    {
+        var timeLimit = TimeSpan.FromMinutes(15);
+        var thresholdTime = DateTime.UtcNow - timeLimit;
+
+        var unpaidOrders = await _dbContext.Orders
+            .Where(o => o.PaymentStatus == PaymentStatus.PENDING && o.CreatedAt < thresholdTime)
+            .ToListAsync();
+
+        foreach (var order in unpaidOrders)
+        {
+            order.PaymentStatus = PaymentStatus.CANCELED;
+        }
+
+        await _dbContext.SaveChangesAsync();
+    }
+
     private PaymentResponse CreateFailedResponse(string reason)
     {
         return new PaymentResponse
@@ -118,4 +139,13 @@ public class RazorpayPaymentService : IPaymentService
     {
         return $"pay_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
     }
+
+    public async Task<string> GeneratePaymentLink(int orderId, int userId, decimal amount)
+    {
+        string localPaymentLink = $"https://localhost:7179/payment/process?orderId={orderId}&userId={userId}&amount={amount}";
+
+        Console.WriteLine($"Generated Local Payment Link: {localPaymentLink}");
+        return await Task.FromResult(localPaymentLink);
+    }
+
 }

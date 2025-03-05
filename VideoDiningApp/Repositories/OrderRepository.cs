@@ -32,7 +32,11 @@ namespace VideoDiningApp.Repositories
 
         public async Task<IEnumerable<Order>> GetAllOrders()
         {
-            return await _context.Orders.ToListAsync(); 
+            return await _context.Orders
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems)
+                .Include(o => o.Participants)
+                .ToListAsync();
         }
 
         public async Task<Order> GetOrderById(int id)
@@ -44,7 +48,10 @@ namespace VideoDiningApp.Repositories
 
         public async Task<IEnumerable<Order>> GetOrdersByUserId(int userId)
         {
-            return await _context.Orders.Where(o => o.UserId == userId).ToListAsync();
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                .Where(o => o.UserId == userId)
+                .ToListAsync();
         }
 
         public async Task<bool> UpdateOrder(int id, Order order)
@@ -103,19 +110,19 @@ namespace VideoDiningApp.Repositories
         public async Task<bool> MarkGroupOrderAsPaid(Guid groupOrderId)
         {
             var groupOrders = await GetOrdersByGroupId(groupOrderId);
-            bool allPaid = true;
+            bool allPaid = groupOrders.All(order => order.PaymentStatus == PaymentStatus.COMPLETED);
 
-            foreach (var order in groupOrders)
+            if (!allPaid)
             {
-                if (order.PaymentStatus != PaymentStatus.COMPLETED)
+                foreach (var order in groupOrders)
                 {
-                    order.PaymentStatus = PaymentStatus.COMPLETED;
-                    await UpdateOrder(order.Id, order);
+                    if (order.PaymentStatus != PaymentStatus.COMPLETED)
+                    {
+                        order.PaymentStatus = PaymentStatus.COMPLETED;
+                        _context.Orders.Update(order);
+                    }
                 }
-                else
-                {
-                    allPaid = false;
-                }
+                await _context.SaveChangesAsync();
             }
 
             return allPaid;
@@ -125,6 +132,18 @@ namespace VideoDiningApp.Repositories
         {
             _context.Payments.Add(payment);
             var result = await _context.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                var order = await _context.Orders.FindAsync(payment.OrderId);
+                if (order != null)
+                {
+                    order.PaymentStatus = PaymentStatus.COMPLETED;
+                    _context.Orders.Update(order);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             return result > 0;
         }
     }

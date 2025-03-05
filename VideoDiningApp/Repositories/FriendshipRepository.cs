@@ -35,7 +35,32 @@ namespace VideoDiningApp.Repositories
 
         public async Task AddFriendshipAsync(Friendship friendship)
         {
-            _context.Friendships.Add(friendship); 
+            _context.Friendships.Add(friendship);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddFriendRequestAsync(FriendRequest request)
+        {
+            _context.FriendRequests.Add(request);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<FriendRequest> GetFriendRequestAsync(int senderId, int receiverId)
+        {
+            return await _context.FriendRequests
+                .FirstOrDefaultAsync(r => r.SenderId == senderId && r.ReceiverId == receiverId);
+        }
+
+        public async Task<IEnumerable<FriendRequest>> GetPendingRequestsAsync(int userId)
+        {
+            return await _context.FriendRequests
+                .Where(r => r.ReceiverId == userId)
+                .ToListAsync();
+        }
+
+        public async Task RemoveFriendRequestAsync(FriendRequest request)
+        {
+            _context.FriendRequests.Remove(request);
             await _context.SaveChangesAsync();
         }
 
