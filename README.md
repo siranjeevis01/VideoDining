@@ -1,107 +1,237 @@
-# 🍽️ Video Dining App – Enhancing Online Food Ordering with Real-Time Social Experience
+# 🍽️ VideoDiningApp
 
-Welcome to the **Video Dining App**, a groundbreaking full-stack web application that redefines online food ordering by integrating **real-time collaboration**, **group ordering**, and **virtual dining via video calls**.
-
----
-
-## 🚀 Project Highlights
-
-- **Real-Time Food Ordering** – Track orders as they're placed, prepared, and delivered.
-- **Virtual Dining Experience** – Auto-triggered video call once food is delivered, using Jitsi Meet API.
-- **Shared Cart** – Friends & family can add food collaboratively to a single order.
-- **Split Payments** – Each participant pays their share securely with OTP verification.
-- **Live Notifications** – Real-time updates via SignalR for order status and user activity.
+A full-stack web application that combines **online food ordering** with **virtual dining**, enabling users to place food orders, invite friends, and enjoy a meal together via live video calls — from the comfort of their homes.
 
 ---
 
-## 🧠 Problem Statement
+## 🔗 Live Demo
 
-> Traditional food ordering platforms lack a collaborative experience, especially for remote friends/family who want to eat together. There's no shared cart, no real-time interaction, and no virtual dining feel.
-
-### ✅ Our Solution:
-We created a system that combines the **convenience of online ordering** with the **warmth of social dining**, no matter where users are located.
+> 🚧 **Coming Soon**
 
 ---
 
-## 🧩 System Modules
+## 📚 Table of Contents
 
-- 👥 **User Management** – Login, registration, and friend system with request/accept/reject features.
-- 🛒 **Ordering** – Menu browsing, collaborative cart, and order submission.
-- 💸 **Payments** – Individual secure payments with transaction validation.
-- 📦 **Tracking** – Real-time order updates.
-- 🎥 **Video Call** – Jitsi Meet-based live video chat for shared meals.
+- [About the Project](#about-the-project)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [API Overview](#api-overview)
+- [Getting Started](#getting-started)
+- [Screenshots](#screenshots)
+- [Future Enhancements](#future-enhancements)
+- [Contact](#contact)
+
+---
+
+## 📌 About the Project
+
+**VideoDiningApp** brings a new dimension to food delivery platforms by adding a **social experience**. It supports:
+
+- Ordering food online
+- Inviting friends
+- Dining together via video calls
+- Secure OTP-based payments
+- Admin controls for managing platform content and users
+
+This app is ideal for virtual hangouts, remote celebrations, or online dining dates.
+
+---
+
+## ✨ Features
+
+### 👤 Authentication
+- Secure login/register
+- JWT-based session handling
+- Email/OTP verification (optional)
+
+### 🛍️ Food Ordering
+- Browse food menu
+- Add/remove items to cart
+- Place and track orders
+- View order history and status
+
+### 💳 Payment System
+- OTP-based payment verification
+- Secure confirmation via email/SMS
+- Track successful transactions
+
+### 👥 Friends Module
+- Add/accept/reject/remove friends
+- View friend list
+- View pending requests and friendship status
+
+### 🎥 Virtual Dining (Video Call)
+- Start/end video calls with friends
+- Track participants
+- View call history
+> _(WebRTC integration planned)_
+
+### 🧑‍💼 Admin Panel
+- Dashboard metrics (users, orders, revenue)
+- Manage users, food items, orders, and payments
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer      | Technologies                         |
-|------------|--------------------------------------|
-| Frontend   | React.js, Redux, Bootstrap           |
-| Backend    | ASP.NET Core (.NET 8), C#            |
-| Database   | MySQL 8+                             |
-| Real-Time  | SignalR                              |
-| Video Call | Jitsi Meet API                       |
-| Auth       | JWT, BCrypt, Secure OTP              |
-| Hosting    | Localhost/Cloud-ready                |
+| Layer       | Tech Used                          |
+|-------------|------------------------------------|
+| Frontend    | React.js, Tailwind CSS, Axios      |
+| Backend     | ASP.NET Core Web API               |
+| Database    | SQL Server                         |
+| Auth        | JWT, ASP.NET Identity (optional)   |
+| Video Calls | WebRTC / SignalR (planned)         |
+| Tools       | Swagger, Postman, Git, VS Code     |
 
 ---
 
-## 🧪 Testing & Performance
+## 📁 Project Structure
 
-- ✅ **Unit & Integration Tests** for APIs and payment flows
-- ⚙️ **Performance Testing** simulating high-concurrency scenarios
-- 🔐 **Security Testing** focused on JWT auth, data privacy, and OTP-based transactions
-
----
-
-## 🖥️ System Architecture
-
-- 🧱 **MVC + Microservices** – Clean separation of concerns for scalability
-- 🔁 **SignalR Integration** – Enables seamless real-time interactions
-- 🔐 **JWT-based Auth** – Ensures secure user sessions
-
----
-
-## 📷 Screenshots & Demo
-
-Screenshots of login, menu, cart sharing, and live video call sessions are available in the `/screenshots` folder.  
-Live Demo: _Coming Soon_ ✨
-
----
-
-## 🌱 Future Enhancements
-
-- 🤖 AI-based Food Recommendations
-- 🛍️ Restaurant Partnership Integration
-- 🌐 Global Payment Gateway Support (Stripe, PayPal, UPI)
+```text
+VideoDiningApp/
+├── VideoDining/         # ASP.NET Core backend
+│   ├── Controllers/
+│   ├── DTOs/
+│   ├── Models/
+│   ├── Services/
+│   ├── Program.cs
+│   ├── appsettings.json
+│   └── VideoDiningApp.csproj
+│
+├── VideoDiningUi/       # React frontend
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── .env
+│   └── package.json
+```
 
 ---
 
-## 📚 References
+## 📡 API Overview
 
-Books:
-- _Learning MySQL_, _Pro C# 9 with .NET Core_, _Learning React_
+> **Swagger:** `http://localhost:5289/swagger/index.html`
 
-Journals:
-- _Performance Optimization Techniques for MySQL_, _Efficient Memory Management in .NET_
+### Admin
+- `GET /api/admin/dashboard`
+- `POST /api/admin/login`
+- `GET /api/admin/users`
+- `DELETE /api/admin/users/{id}`
+- `GET/POST/PUT/DELETE /api/admin/foods`
+- `GET /api/admin/orders`
+- `PUT /api/admin/orders/{orderId}`
+- `GET /api/admin/payments`
+
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/verify`
+
+### Cart
+- `GET /api/cart/{userId}`
+- `POST /api/cart/add`
+- `DELETE /api/cart/remove/{cartItemId}`
+
+### Food
+- `GET /api/foods`
+
+### Friends
+- `POST /api/friends/add|accept|reject`
+- `DELETE /api/friends/remove`
+- `GET /api/friends/list/{userId}`
+- `GET /api/friends/check/{userId}/{friendId}`
+- `GET /api/friends/requests/{userId}`
+
+### Orders
+- `POST /api/orders/create/{userId}`
+- `GET /api/orders`
+- `GET /api/orders/history/{userId}`
+- `GET /api/orders/status/{orderId}`
+- `POST /api/orders/update-status/{orderId}`
+- `POST /api/orders/mark-delivered/{orderId}/{userId}`
+- `POST /api/orders/remind/{orderId}`
+- `DELETE /api/orders/cancel/{orderId}/{userId}`
+
+### Payments
+- `POST /api/payment/send-links`
+- `POST /api/payment/verifyOtp`
+- `POST /api/payment/generateOtp`
+- `POST /api/payment/confirm-payment`
+- `POST /api/payment/pay/{orderId}`
+- `POST /api/payment/success`
+
+### Video Call
+- `POST /api/video-call/start`
+- `POST /api/video-call/end`
+- `GET /api/video-call/{orderId}/participants`
+- `GET /api/video-call/{orderId}`
+- `GET /api/video-call/history/{userId}`
 
 ---
 
-## 📌 How to Run Locally
+## 🚀 Getting Started
 
-### Backend (.NET 9)
+### Prerequisites
+- Node.js + npm
+- .NET 6 SDK
+- SQL Server
+- Visual Studio or VS Code
 
+### 🔧 Setup
+
+#### 1. Clone the repository
+```bash
+git clone https://github.com/siranjeevis01/VideoDiningApp.git
 cd VideoDiningApp
-dotnet restore
-dotnet run
+```
 
-### Frontend (React)
-
+#### 2. Run the Frontend
+```bash
 cd VideoDiningUi
 npm install
 npm start
+```
 
-📍 Ensure MySQL is running locally or update your connection string in appsettings.json.
+#### 3. Run the Backend
+```bash
+cd ../VideoDining
+dotnet restore
+dotnet ef database update
+dotnet run
+```
 
+#### 4. Access App
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:5289/swagger`
 
+---
+
+## 🖼️ Screenshots
+(Add screenshots here of login, dashboard, video call, etc.)
+
+---
+
+## 🔮 Future Enhancements
+- [x] Real-time chat during calls
+- [x] Google & Facebook OAuth login
+- [x] Push notifications
+- [x] Dish reviews & ratings
+- [x] Order tracking on map
+- [x] Mobile responsive design
+
+---
+
+## 🤝 Contact
+
+**👤 Created by:** Siranjeevi  
+**📧 Email:** siranjeeviwd@gmail.com  
+**💼 LinkedIn:** [linkedin.com/in/siranjeevis01](https://linkedin.com/in/siranjeevis01)  
+**💻 GitHub:** [github.com/siranjeevis01](https://github.com/siranjeevis01)
+
+> “Transforming food delivery into a shared experience.” 🍕👨‍👩‍👧
