@@ -1,6 +1,4 @@
----
 
-```markdown
 # 🍽️ VideoDiningApp
 
 A full-stack web application that blends **online food ordering** with the **joy of virtual dining**, allowing users to order food, dine with friends over video calls, and manage everything from cart to payment in a seamless experience.
@@ -251,7 +249,6 @@ If you'd like, I can also help:
 - Write deployment instructions (for Vercel, Azure, etc.)
 
 Just let me know!
-```
 
 ---
 
