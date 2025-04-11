@@ -1,3 +1,6 @@
+---
+
+```markdown
 # 🍽️ VideoDiningApp
 
 A full-stack web application that blends **online food ordering** with the **joy of virtual dining**, allowing users to order food, dine with friends over video calls, and manage everything from cart to payment in a seamless experience.
@@ -88,6 +91,7 @@ Built with modern tools and a clean architecture, this app bridges the gap betwe
 
 ## 📁 Project Structure
 
+```bash
 VideoDiningApp/
 ├── client/                      # React frontend
 │   ├── public/
@@ -108,7 +112,9 @@ VideoDiningApp/
 ├── README.md
 ├── package.json
 └── .gitignore
+```
 
+---
 
 ## 📡 API Overview
 
@@ -245,6 +251,7 @@ If you'd like, I can also help:
 - Write deployment instructions (for Vercel, Azure, etc.)
 
 Just let me know!
+```
 
 ---
 
@@ -254,4 +261,3 @@ Let me know if you want:
 - Postman collection or `api-docs.json`
 - `Vercel`, `Azure`, or `Docker` deployment steps
 
-This README is ready to **wow HRs, recruiters, or clients** 🚀
