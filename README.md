@@ -69,34 +69,52 @@ Built with modern tools and a clean architecture, this app bridges the gap betwe
 - Start and end video calls per order
 - View call participants
 - View call history by user
-- (WebRTC integration suggested)
+- *(WebRTC integration suggested)*
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer          | Tech Used                         |
-|----------------|-----------------------------------|
-| Frontend       | React.js, Tailwind CSS, Axios     |
-| Backend        | ASP.NET Core Web API              |
-| Database       | SQL Server                        |
-| Auth           | JWT, ASP.NET Identity (optional)  |
-| Video Calls    | WebRTC / SignalR (planned)        |
-| Tools          | Swagger, Postman, Git, VS Code    |
+| Layer       | Tech Used                        |
+|------------|----------------------------------|
+| Frontend    | React.js, Tailwind CSS, Axios    |
+| Backend     | ASP.NET Core Web API             |
+| Database    | SQL Server                       |
+| Auth        | JWT, ASP.NET Identity (optional) |
+| Video Calls | WebRTC / SignalR *(planned)*     |
+| Tools       | Swagger, Postman, Git, VS Code   |
 
 ---
 
+## 📁 Project Structure
 
----
+VideoDiningApp/
+├── client/                      # React frontend
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       ├── pages/
+│       ├── services/            # Axios API handlers
+│       ├── App.js
+│       └── index.js
+├── server/                      # ASP.NET Core backend
+│   ├── Controllers/
+│   ├── Models/
+│   ├── DTOs/
+│   ├── Services/
+│   ├── Data/
+│   ├── Program.cs
+│   └── Startup.cs
+├── README.md
+├── package.json
+└── .gitignore
+
 
 ## 📡 API Overview
 
-The API is organized into modules and served with Swagger:
-
-> **Swagger UI:** `http://localhost:5289/swagger/index.html`
+> **Swagger UI:** [http://localhost:5289/swagger/index.html](http://localhost:5289/swagger/index.html)
 
 ### ✅ Admin Endpoints
-
 - `GET /api/admin/dashboard`
 - `POST /api/admin/login`
 - Manage users: `GET`, `DELETE /api/admin/users`
@@ -105,23 +123,19 @@ The API is organized into modules and served with Swagger:
 - View payments
 
 ### 🔐 Auth Endpoints
-
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/verify`
 
 ### 🛒 Cart Endpoints
-
 - `GET /api/cart/{userId}`
 - `POST /api/cart/add`
 - `DELETE /api/cart/remove/{cartItemId}`
 
 ### 🍴 Food
-
 - `GET /api/foods`
 
 ### 🧑‍🤝‍🧑 Friends
-
 - Add, Accept, Reject: `POST /api/friends/add|accept|reject`
 - `DELETE /api/friends/remove`
 - `GET /api/friends/list/{userId}`
@@ -129,7 +143,6 @@ The API is organized into modules and served with Swagger:
 - `GET /api/friends/requests/{userId}`
 
 ### 📦 Orders
-
 - `POST /api/orders/create/{userId}`
 - `GET /api/orders`, `/history/{userId}`, `/status/{orderId}`
 - `POST /api/orders/update-status/{orderId}`
@@ -138,7 +151,6 @@ The API is organized into modules and served with Swagger:
 - `DELETE /api/orders/cancel/{orderId}/{userId}`
 
 ### 💸 Payment (OTP-secured)
-
 - `POST /api/payment/send-links`
 - `POST /api/payment/verifyOtp`
 - `POST /api/payment/generateOtp`
@@ -147,7 +159,6 @@ The API is organized into modules and served with Swagger:
 - `POST /api/payment/success`
 
 ### 📹 Video Call
-
 - `POST /api/video-call/start`
 - `POST /api/video-call/end`
 - `GET /api/video-call/{orderId}/participants`
@@ -169,55 +180,78 @@ The API is organized into modules and served with Swagger:
 
 1. **Clone the repo**
 
+```bash
 git clone https://github.com/yourusername/VideoDiningApp.git
 cd VideoDiningApp
+```
 
 2. **Install Frontend Dependencies**
 
-git clone https://github.com/yourusername/VideoDiningApp.git
-cd VideoDiningApp
+```bash
+cd client
+npm install
+npm start
+```
 
 3. **Setup Backend**
 
+```bash
 cd ../server
 dotnet restore
 dotnet ef database update
 dotnet run
+```
 
 4. **Open in Browser**
 
-Frontend: http://localhost:3000
-Backend API (Swagger): http://localhost:5289/swagger
-
-🖼️ Screenshots
-
-🔮 Future Enhancements
-🔴 Real-time chat during video calls
-
-📱 Mobile responsive layout
-
-🌐 OAuth (Google, Facebook)
-
-📍 Live order tracking on maps
-
-🌟 Dish ratings & reviews
-
-📢 Push notifications
-
-🤝 Contact
-Created by: [Your Name]
-
-📧 Email: siranjeeviwd@gmail.com
-💼 LinkedIn: [linkedin.com/in/siranjeevis01](https://www.linkedin.com/in/siranjeevis01/)
-💻 GitHub: [github.com/siranjeevis01](https://github.com/siranjeevis01)
-
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API (Swagger): [http://localhost:5289/swagger](http://localhost:5289/swagger)
 
 ---
 
+## 🖼️ Screenshots
+
+*Coming Soon – Add UI previews here*
+
+---
+
+## 🔮 Future Enhancements
+
+- 🔴 Real-time chat during video calls  
+- 📱 Mobile responsive layout  
+- 🌐 OAuth (Google, Facebook)  
+- 📍 Live order tracking on maps  
+- 🌟 Dish ratings & reviews  
+- 📢 Push notifications  
+
+---
+
+## 🤝 Contact
+
+**Created by:** Siranjeevi  
+📧 Email: [siranjeeviwd@gmail.com](mailto:siranjeeviwd@gmail.com)  
+💼 LinkedIn: [linkedin.com/in/siranjeevis01](https://www.linkedin.com/in/siranjeevis01/)  
+💻 GitHub: [github.com/siranjeevis01](https://github.com/siranjeevis01)
+
+---
+
+## 🧩 Extras
+
 If you'd like, I can also help:
+
 - Add **badges** (build, license, etc.)
 - Create a `Postman` collection for API testing
 - Generate database diagrams or ERD
 - Write deployment instructions (for Vercel, Azure, etc.)
 
 Just let me know!
+
+---
+
+Let me know if you want:
+- Markdown badges (e.g., Netlify build, License)
+- Screenshots
+- Postman collection or `api-docs.json`
+- `Vercel`, `Azure`, or `Docker` deployment steps
+
+This README is ready to **wow HRs, recruiters, or clients** 🚀
